@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Netlii Builder & Cloud Hosting Station</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --p: #ffffff;
+            --t: #ffffff;
+            --s: #000000;
+            --sr: #222222;
+            --bg: #111111;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Segoe UI', ui-sans-serif, system-ui, sans-serif;
+        }
+
+        /* Workspace Control Grid CSS styles */
+        .controls {
+            width: 420px;
+            background: #ffffff;
+            padding: 30px;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+            overflow-y: auto;
+            z-index: 10;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #888;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            background: #fff;
+            color: #000;
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 12px;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 150ms ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        /* Live Preview Structural Classes */
+        .preview-container {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #d1d5db;
+        }
+
+        .preview-window {
+            width: 95%;
+            height: 85%;
+            background: var(--bg);
+            border-radius: 15px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            display: flex;
+            overflow: hidden;
+            position: relative;
+            background-size: cover !important;
+            background-position: center !important;
+        }
+
+        .p-sidebar {
+            width: 55px;
+            height: 100%;
+            background: var(--s);
+            opacity: 0.8;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 15px 8px;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .p-dot {
+            width: 100%;
+            aspect-ratio: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            transition: 0.2s;
+        }
+
+        .p-dot:hover, .p-dot.active {
+            background: var(--p);
+        }
+
+        .p-content {
+            flex: 1;
+            padding: 30px;
+            color: var(--t);
+            overflow: hidden;
+        }
+
+        .p-search {
+            width: 100%;
+            height: 40px;
+            background: var(--sr);
+            border-radius: 20px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .p-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .p-btn {
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            border: 1px solid var(--p);
+        }
+    </style>
+</head>
+
+<body class="bg-zinc-900 text-zinc-100 flex flex-col h-screen">
+
+    <div id="viewerModeContainer" class="hidden flex flex-col h-screen w-screen absolute inset-0 z-50 bg-black">
+        <div class="h-10 bg-zinc-950 border-b border-zinc-800 flex items-center justify-between px-6 shrink-0 text-zinc-200">
+            <div class="flex items-center gap-2">
+                <span class="text-xs bg-emerald-950 text-emerald-400 border border-emerald-800/60 px-2 py-0.5 rounded font-mono font-medium tracking-tight">Cloud Active Deployment</span>
+                <p class="text-xs text-zinc-400">Powered by <span class="text-zinc-200 font-semibold">Supabase Backend Engine</span></p>
+            </div>
+            <button id="remixBtn" class="text-xs text-emerald-400 hover:text-emerald-300 font-medium transition cursor-pointer flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                Build / Remix Netlii
+            </button>
+        </div>
+        <iframe id="viewerPreview" class="w-full flex-1 border-none bg-black" allowfullscreen sandbox="allow-scripts allow-modals allow-popups allow-same-origin"></iframe>
+    </div>
+
+    <div id="editorModeContainer" class="flex h-full w-full bg-zinc-900 text-zinc-800">
+        <div class="controls flex flex-col justify-between">
+            <div>
+                <div class="flex items-center gap-2 border-b border-zinc-200 pb-4 mb-4">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <h2 class="text-xl font-black text-zinc-900 tracking-tight">Netlii Database Studio</h2>
+                </div>
+
+                <div class="input-group">
+                    <label>Site Name</label>
+                    <input type="text" id="userTitle" placeholder="My Game Site" oninput="updatePreview()">
+                </div>
+
+                <div class="color-grid">
+                    <div class="input-group"><label>Accent Color</label><input type="color" class="w-full h-10 border rounded-md cursor-pointer" id="primaryColor" value="#eb9e34" oninput="updatePreview()"></div>
+                    <div class="input-group"><label>Text Color</label><input type="color" class="w-full h-10 border rounded-md cursor-pointer" id="textColor" value="#ffffff" oninput="updatePreview()"></div>
+                    <div class="input-group"><label>Sidebar BG</label><input type="color" class="w-full h-10 border rounded-md cursor-pointer" id="sidebarColor" value="#09090b" oninput="updatePreview()"></div>
+                    <div class="input-group"><label>Search BG</label><input type="color" class="w-full h-10 border rounded-md cursor-pointer" id="searchColor" value="#eb9e34" oninput="updatePreview()"></div>
+                    <div class="input-group" style="grid-column: span 2;"><label>Fallback Background Color</label><input type="color" class="w-full h-10 border rounded-md cursor-pointer" id="bgColor" value="#09090b" oninput="updatePreview()"></div>
+                </div>
+
+                <div class="input-group mt-2">
+                    <label>Upload Background Wallpaper Image</label>
+                    <input type="file" id="bgUpload" accept="image/*" class="w-full text-xs text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-zinc-100 file:text-zinc-700 hover:file:bg-zinc-200" onchange="previewImage(this)">
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-2 mt-6">
+                <button id="shareBtn" class="action-btn bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/></svg>
+                    Get Database Short Link
+                </button>
+                <button id="build" onclick="generateLocalDownload()" class="action-btn bg-zinc-800 hover:bg-zinc-700 text-zinc-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                    Download Local index.html
+                </button>
+            </div>
+        </div>
+
+        <div class="preview-container">
+            <div class="preview-window" id="p-window">
+                <div class="p-sidebar" id="p-sidebar-view">
+                    <div class="p-dot active"></div>
+                    <div class="p-dot"></div>
+                    <div class="p-dot"></div>
+                    <div class="p-dot"></div>
+                </div>
+                <div class="p-content">
+                    <h1 id="p-title" class="font-bold tracking-tight" style="margin:0 0 20px 0; font-size: 32px;">My Game Site</h1>
+                    <div class="p-search" id="p-search"></div>
+                    <div style="font-weight:900; font-size: 20px; margin-bottom:15px; border-bottom:2px solid var(--p); display:inline-block">A</div>
+                    <div class="p-grid">
+                        <div class="p-btn"></div>
+                        <div class="p-btn"></div>
+                        <div class="p-btn"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-6 right-6 px-4 py-3 bg-zinc-800 text-zinc-200 rounded-lg shadow-xl border border-zinc-700 text-sm transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-2 z-50">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+        </svg>
+        <span id="toastMessage">Success!</span>
+    </div>
+
+    <script>
+        // ===================================================
+        // !!! INSERT YOUR ACTUAL CREDENTIALS FROM SUPABASE !!!
+        // ===================================================
+        const SUPABASE_URL = "https://bvjbafvwflomzhaxrxnm.supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable_tr9m4qIjc3ndO5uiKpWuMg_As5H52ve";
+
+        let supabaseClient = null;
+
+        // Secure conditional initialize fallback pattern
+        try {
+            if (SUPABASE_URL !== "YOUR_SUPABASE_URL") {
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+        } catch (err) {
+            console.error("Supabase engine boot failure configuration mapping:", err);
+        }
+
+        let currentBase64 = "";
+
+        // --- COMPILATION LOGIC (BUILDS STYLED CLIENT CONTAINER SITE) ---
+        function assembleProductionHTML(base64Image) {
+            const title = document.getElementById('userTitle').value || "geese";
+            const primary = document.getElementById('primaryColor').value;
+            const text = document.getElementById('textColor').value;
+            const sidebarBg = document.getElementById('sidebarColor').value;
+            const searchBg = document.getElementById('searchColor').value;
+            const fallbackBg = document.getElementById('bgColor').value;
+
+            const backgroundCSS = base64Image ? `background: url('${base64Image}') no-repeat center center fixed;` : `background-color: ${fallbackBg};`;
+
+            const hexToRgba = (hex, alpha) => {
+                const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+                return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+            };
+
+            return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>${title} | Games</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: ${primary};
+            --text: ${text};
+            --sidebar-bg: ${hexToRgba(sidebarBg, 0.6)};
+            --search-bg: ${hexToRgba(searchBg, 0.8)};
+            --surface: rgba(255, 255, 255, 0.1);
+            --radius-lg: 20px;
+            --radius-sm: 12px;
+        }
+        body {
+            font-family: 'Nunito', sans-serif;
+            ${backgroundCSS}
+            background-size: cover;
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            color: var(--text);
+        }
+        .sidebar { position: fixed; left: 0; top: 0; width: 80px; height: 100vh; background: var(--sidebar-bg); backdrop-filter: blur(20px); padding: 20px 10px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; border-right: 1px solid rgba(255, 255, 255, 0.1); z-index: 1000; }
+        .sidebar-btn { background: var(--surface); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text); padding: 12px; font-size: 18px; font-weight: 900; border-radius: var(--radius-sm); cursor: pointer; transition: 0.2s; }
+        .sidebar-btn:hover:not(.empty) { background: var(--primary); color: black; transform: translateX(5px); }
+        .sidebar-btn.empty { opacity: 0.3; cursor: default; }
+        .main-content { margin-left: 100px; flex: 1; padding: 40px; }
+        h1 { font-size: 55px; text-align: center; margin-bottom: 40px; letter-spacing: -2px; }
+        .search-container { position: sticky; top: 20px; background: var(--search-bg); backdrop-filter: blur(15px); padding: 20px; z-index: 900; border-radius: var(--radius-lg); margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); }
+        #gameSearch { width: 100%; box-sizing: border-box; padding: 14px 25px; font-size: 16px; border-radius: 30px; border: 1px solid rgba(255, 255, 255, 0.2); background: rgba(255, 255, 255, 0.05); color: var(--text); outline: none; }
+        .letter-header { font-weight: 900; font-size: 42px; border-bottom: 2px solid var(--primary); margin: 40px 0 20px 0; display: inline-block; }
+        .buttons-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
+        .game-button { background: var(--surface); backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 15px; font-size: 14px; font-weight: 700; border-radius: var(--radius-sm); cursor: pointer; transition: 0.2s; color: var(--text); text-align: left; }
+        .game-button:hover { background: var(--primary); color: #000; transform: translateY(-3px); }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { width: 95%; height: 95%; background: #000; border-radius: 15px; overflow: hidden; display: flex; flex-direction: column; }
+        .modal-header { padding: 15px 25px; background: #1a1a1a; display: flex; justify-content: space-between; align-items: center; color: #fff; }
+        .modal-controls { display: flex; gap: 10px; }
+        .ctrl-btn { padding: 8px 15px; background: #333; border: none; color: #fff; border-radius: 5px; cursor: pointer; }
+        .ctrl-btn:hover { background: var(--primary); color: #000; }
+        .game-frame-container { flex: 1; position: relative; }
+        iframe { width: 100%; height: 100%; border: none; }
+    </style>
+</head>
+<body>
+    <div class="sidebar" id="sidebar"></div>
+    <div class="main-content">
+        <h1>${title}</h1>
+        <div class="search-container">
+            <input type="text" id="gameSearch" placeholder="Search for a game..." onkeyup="filterGames()">
+        </div>
+        <div id="sections-container"></div>
+    </div>
+    <div id="gameModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span id="modalTitle">Loading...</span>
+                <div class="modal-controls">
+                    <button onclick="openAboutBlank()" class="ctrl-btn">About:Blank</button>
+                    <button onclick="downloadCurrentGame()" class="ctrl-btn">Download</button>
+                    <button onclick="toggleFullscreen()" class="ctrl-btn">Fullscreen</button>
+                    <button onclick="closeModal()" class="ctrl-btn">✕</button>
+                </div>
+            </div>
+            <div class="game-frame-container">
+                <iframe id="gameFrame" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/gh/Bubbergamesites/graggle@main/games.js"><\/script>
+</body>
+</html>`;
+        }
+
+        // --- INTERACTIVE VISUAL DESKTOP WORKSPACE MANAGEMENT ---
+        function updatePreview() {
+            const root = document.documentElement;
+            const pColor = document.getElementById('primaryColor').value;
+            const tColor = document.getElementById('textColor').value;
+            const sColor = document.getElementById('sidebarColor').value;
+            const rColor = document.getElementById('searchColor').value;
+            const bgColor = document.getElementById('bgColor').value;
+
+            root.style.setProperty('--p', pColor);
+            root.style.setProperty('--t', tColor);
+            root.style.setProperty('--s', sColor);
+            root.style.setProperty('--sr', rColor);
+            root.style.setProperty('--bg', bgColor);
+
+            document.getElementById('p-title').innerText = document.getElementById('userTitle').value || "geese";
+
+            const win = document.getElementById('p-window');
+            if (currentBase64) {
+                win.style.background = `url('${currentBase64}')`;
+            } else {
+                win.style.background = bgColor;
+            }
+        }
+
+        function previewImage(input) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    currentBase64 = e.target.result;
+                    updatePreview();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function generateLocalDownload() {
+            const compiledCode = assembleProductionHTML(currentBase64);
+            const blob = new Blob([compiledCode], { type: 'text/html' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'index.html';
+            a.click();
+            showToast("Downloaded standalone file!");
+        }
+
+        // --- ROUTING ENGINE ---
+        const editorModeContainer = document.getElementById('editorModeContainer');
+        const viewerModeContainer = document.getElementById('viewerModeContainer');
+        const viewerPreview = document.getElementById('viewerPreview');
+        const shareBtn = document.getElementById('shareBtn');
+        const remixBtn = document.getElementById('remixBtn');
+        const toast = document.getElementById('toast');
+
+        function getProjectIdFromUrl() {
+            const hash = window.location.hash;
+            if (hash.startsWith('#/p/')) {
+                return hash.replace('#/p/', '');
+            }
+            return null;
+        }
+
+        async function init() {
+            const projectId = getProjectIdFromUrl();
+            if (projectId) {
+                if (!supabaseClient) {
+                    fallbackToWorkspace("Database credentials missing. Set keys in source script.");
+                    return;
+                }
+                try {
+                    editorModeContainer.classList.add('hidden');
+                    viewerModeContainer.classList.remove('hidden');
+
+                    // Read straight from Supabase Project row data
+                    const { data, error } = await supabaseClient
+                        .from('projects')
+                        .select('html_code')
+                        .eq('id', projectId)
+                        .single();
+
+                    if (error || !data) throw new Error("Missing content instance entry");
+                    
+                    const blob = new Blob([data.html_code], { type: 'text/html' });
+                    viewerPreview.src = URL.createObjectURL(blob);
+                } catch (e) {
+                    console.error("Payload read exception mapping handler:", e);
+                    fallbackToWorkspace("Error fetching shared database deployment link.");
+                }
+            } else {
+                viewerModeContainer.classList.add('hidden');
+                editorModeContainer.classList.remove('hidden');
+                updatePreview();
+            }
+        }
+
+        function fallbackToWorkspace(msg) {
+            showToast(msg);
+            window.location.hash = '';
+            init();
+        }
+
+        function showToast(message) {
+            toast.querySelector('#toastMessage').textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // --- CLOUD DATABASE WRITE TRIGGER ---
+        shareBtn.addEventListener('click', async () => {
+            if (!supabaseClient) {
+                showToast("Cannot connect to cloud database. Configure your credentials at the top of the file.");
+                return;
+            }
+            try {
+                showToast("Saving custom interface configurations to database...");
+                const compiledCode = assembleProductionHTML(currentBase64);
+                
+                // Create random clean 6-digit identification token
+                const shortId = Math.random().toString(36).substring(2, 8);
+
+                // Insert generated markup document straight into public projects table instance row
+                const { error } = await supabaseClient
+                    .from('projects')
+                    .insert([{ id: shortId, html_code: compiledCode }]);
+
+                if (error) throw error;
+
+                // Construct short routing location link look
+                const shareUrl = `${window.location.origin}${window.location.pathname}#/p/${shortId}`;
+
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                    showToast("Clean short link copied to clipboard!");
+                }).catch(err => {
+                    console.error(err);
+                    showToast("Failed to write link to clipboard.");
+                });
+            } catch (err) {
+                console.error(err);
+                showToast("Database write stream encountered issues.");
+            }
+        });
+
+        remixBtn.addEventListener('click', () => {
+            window.location.hash = '';
+        });
+
+        window.addEventListener('hashchange', init);
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+
+</html>
