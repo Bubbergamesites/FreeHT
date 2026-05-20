@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FreeHT</title>
-    <!-- Tailwind CSS for modern styling -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         body,
@@ -26,77 +25,86 @@
 
 <body class="bg-zinc-900 text-zinc-100 flex flex-col h-screen">
 
-    <!-- Top Navigation Bar -->
-    <header class="h-14 border-b border-zinc-800 bg-zinc-950 flex items-center justify-between px-6 z-10">
-        <div class="flex items-center gap-3">
-            <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
-            <h1 class="text-lg font-semibold tracking-tight text-zinc-200">💻 FreeHT<span class="text-xs font-normal text-zinc-500 ml-1">v2.0</span></h1>
-        </div>
-
-        <!-- Document Operations Toolbar -->
-        <div class="flex items-center gap-2">
-            <!-- Hidden native file input element accessed via custom button label -->
-            <input type="file" id="fileInput" accept=".html,.htm,.txt" class="hidden">
-            <button id="importBtn" class="px-3 py-1.5 text-xs font-medium bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-700 text-zinc-200 rounded-md border border-zinc-700 transition duration-150 flex items-center gap-1.5 cursor-pointer">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="17 8 12 3 7 8" />
-                    <line x1="12" x2="12" y1="3" y2="15" />
-                </svg>
-                Import HTML
-            </button>
-
-            <button id="exportBtn" class="px-3 py-1.5 text-xs font-medium bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-700 text-zinc-200 rounded-md border border-zinc-700 transition duration-150 flex items-center gap-1.5 cursor-pointer">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="7 10 12 15 17 10" />
-                    <line x1="12" x2="12" y1="15" y2="3" />
-                </svg>
-                Export / Download
-            </button>
-
-            <div class="h-6 w-px bg-zinc-800 mx-1"></div>
-
-            <button id="shareBtn" class="px-3 py-1.5 text-xs font-medium bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white rounded-md transition duration-150 flex items-center gap-1.5 cursor-pointer">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
-                    <polyline points="16 6 12 2 8 6" />
-                    <line x1="12" x2="12" y1="2" y2="15" />
-                </svg>
-                Get Hosting Link
-            </button>
-
-            <button id="resetBtn" class="px-3 py-1.5 text-xs font-medium bg-red-950/40 hover:bg-red-900/40 text-red-400 rounded-md border border-red-900/50 transition duration-150 cursor-pointer">
-                Clear
-            </button>
-        </div>
-    </header>
-
-    <!-- Main Workspace -->
-    <main class="flex flex-1 overflow-hidden divide-x divide-zinc-800">
-
-        <!-- Left Side: Code Editor -->
-        <div class="w-1/2 h-full flex flex-col relative bg-zinc-950">
-            <div class="h-8 bg-zinc-900/50 border-b border-zinc-800/80 px-4 flex items-center justify-between text-xs text-zinc-400 tracking-wider font-mono">
-                <span id="fileNameLabel">INDEX.HTML</span>
-                <span id="charCount">0 chars</span>
+    <div id="viewerModeContainer" class="hidden flex flex-col h-screen w-screen absolute inset-0 z-50 bg-white">
+        <div class="h-10 bg-zinc-950 border-b border-zinc-800 flex items-center justify-between px-6 shrink-0">
+            <div class="flex items-center gap-2">
+                <span class="text-xs bg-emerald-950 text-emerald-400 border border-emerald-800/60 px-2 py-0.5 rounded font-mono font-medium tracking-tight">Hosted Site</span>
+                <p class="text-xs text-zinc-400">This page was made with <span class="text-zinc-200 font-semibold">FreeHT v2.0</span></p>
             </div>
-            <textarea id="editor" class="textarea-editor w-full flex-1 p-4 bg-zinc-950 text-emerald-400 focus:outline-none text-sm leading-relaxed" spellcheck="false" placeholder="Write your HTML, CSS, or JS here..."></textarea>
+            <button id="remixBtn" class="text-xs text-emerald-400 hover:text-emerald-300 font-medium transition cursor-pointer flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                Edit / Remix Code
+            </button>
         </div>
+        <iframe id="viewerPreview" class="w-full flex-1 border-none bg-white" sandbox="allow-scripts allow-modals allow-popups"></iframe>
+    </div>
 
-        <!-- Right Side: Live Iframe Preview -->
-        <div class="w-1/2 h-full flex flex-col bg-white">
-            <div class="h-8 bg-zinc-100 border-b border-zinc-200 px-4 flex items-center justify-between text-xs text-zinc-500 tracking-wider font-mono">
-                <span>LIVE PREVIEW</span>
-                <span id="previewStatus" class="text-emerald-600 flex items-center gap-1">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Idle
-                </span>
+
+    <div id="editorModeContainer" class="flex flex-col h-full w-full">
+        <header class="h-14 border-b border-zinc-800 bg-zinc-950 flex items-center justify-between px-6 z-10">
+            <div class="flex items-center gap-3">
+                <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
+                <h1 class="text-lg font-semibold tracking-tight text-zinc-200">💻 FreeHT<span class="text-xs font-normal text-zinc-500 ml-1">v2.0</span></h1>
             </div>
-            <iframe id="preview" class="w-full flex-1 border-none bg-white" sandbox="allow-scripts allow-modals allow-popups"></iframe>
-        </div>
-    </main>
 
-    <!-- Toast Notification Overlay -->
+            <div class="flex items-center gap-2">
+                <input type="file" id="fileInput" accept=".html,.htm,.txt" class="hidden">
+                <button id="importBtn" class="px-3 py-1.5 text-xs font-medium bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-700 text-zinc-200 rounded-md border border-zinc-700 transition duration-150 flex items-center gap-1.5 cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="17 8 12 3 7 8" />
+                        <line x1="12" x2="12" y1="3" y2="15" />
+                    </svg>
+                    Import HTML
+                </button>
+
+                <button id="exportBtn" class="px-3 py-1.5 text-xs font-medium bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-700 text-zinc-200 rounded-md border border-zinc-700 transition duration-150 flex items-center gap-1.5 cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" x2="12" y1="15" y2="3" />
+                    </svg>
+                    Export / Download
+                </button>
+
+                <div class="h-6 w-px bg-zinc-800 mx-1"></div>
+
+                <button id="shareBtn" class="px-3 py-1.5 text-xs font-medium bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white rounded-md transition duration-150 flex items-center gap-1.5 cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+                        <polyline points="16 6 12 2 8 6" />
+                        <line x1="12" x2="12" y1="2" y2="15" />
+                    </svg>
+                    Get Hosting Link
+                </button>
+
+                <button id="resetBtn" class="px-3 py-1.5 text-xs font-medium bg-red-950/40 hover:bg-red-900/40 text-red-400 rounded-md border border-red-900/50 transition duration-150 cursor-pointer">
+                    Clear
+                </button>
+            </div>
+        </header>
+
+        <main class="flex flex-1 overflow-hidden divide-x divide-zinc-800">
+            <div class="w-1/2 h-full flex flex-col relative bg-zinc-950">
+                <div class="h-8 bg-zinc-900/50 border-b border-zinc-800/80 px-4 flex items-center justify-between text-xs text-zinc-400 tracking-wider font-mono">
+                    <span id="fileNameLabel">INDEX.HTML</span>
+                    <span id="charCount">0 chars</span>
+                </div>
+                <textarea id="editor" class="textarea-editor w-full flex-1 p-4 bg-zinc-950 text-emerald-400 focus:outline-none text-sm leading-relaxed" spellcheck="false" placeholder="Write your HTML, CSS, or JS here..."></textarea>
+            </div>
+
+            <div class="w-1/2 h-full flex flex-col bg-white">
+                <div class="h-8 bg-zinc-100 border-b border-zinc-200 px-4 flex items-center justify-between text-xs text-zinc-500 tracking-wider font-mono">
+                    <span>LIVE PREVIEW SPLIT</span>
+                    <span id="previewStatus" class="text-emerald-600 flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Idle
+                    </span>
+                </div>
+                <iframe id="preview" class="w-full flex-1 border-none bg-white" sandbox="allow-scripts allow-modals allow-popups"></iframe>
+            </div>
+        </main>
+    </div>
+
     <div id="toast" class="fixed bottom-6 right-6 px-4 py-3 bg-zinc-800 text-zinc-200 rounded-lg shadow-xl border border-zinc-700 text-sm transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-2">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="20 6 9 17 4 12" />
@@ -104,9 +112,7 @@
         <span id="toastMessage">Success!</span>
     </div>
 
-    <!-- Script Application Logic -->
     <script>
-        // Default starting code template context
         const DEFAULT_TEMPLATE = `<!DOCTYPE html>
 <html>
 <head>
@@ -138,56 +144,43 @@
 </body>
 </html>`;
 
-        // --- MODERN BINARY STREAM COMPRESSION PIPELINE ---
-
-        /**
-         * Compresses an HTML string into an ultra-compact, URL-safe Base64 token using native Gzip streams.
-         */
+        // --- BINARY COMPRESSION ENGINES ---
         async function compressCode(string) {
             const byteArray = new TextEncoder().encode(string);
             const cs = new CompressionStream('gzip');
             const writer = cs.writable.getWriter();
             writer.write(byteArray);
             writer.close();
-
             const buffer = await new Response(cs.readable).arrayBuffer();
-
-            // Convert the raw binary array buffer into standard URL-safe Base64 layout
             return btoa(String.fromCharCode(...new Uint8Array(buffer)))
                 .replace(/\+/g, '-')
                 .replace(/\//g, '_')
                 .replace(/=+$/, '');
         }
 
-        /**
-         * Decompresses a URL-safe Base64 token back into a readable HTML code string.
-         */
         async function decompressCode(base64String) {
-            // Reverse the URL-safe substitution adjustments
             let base64 = base64String.replace(/-/g, '+').replace(/_/g, '/');
             while (base64.length % 4) base64 += '=';
-
             const binaryString = atob(base64);
             const byteArray = new Uint8Array(binaryString.length);
             for (let i = 0; i < binaryString.length; i++) {
                 byteArray[i] = binaryString.charCodeAt(i);
             }
-
             const ds = new DecompressionStream('gzip');
             const writer = ds.writable.getWriter();
             writer.write(byteArray);
             writer.close();
-
             const buffer = await new Response(ds.readable).arrayBuffer();
             return new TextDecoder().decode(buffer);
         }
 
-        // --- CORE APPLICATION CONTROL AND INTERACTION ROUTINES ---
-
+        // --- UI BINDINGS ---
         const editor = document.getElementById('editor');
         const preview = document.getElementById('preview');
+        const viewerPreview = document.getElementById('viewerPreview');
         const shareBtn = document.getElementById('shareBtn');
         const resetBtn = document.getElementById('resetBtn');
+        const remixBtn = document.getElementById('remixBtn');
         const charCount = document.getElementById('charCount');
         const previewStatus = document.getElementById('previewStatus');
         const toast = document.getElementById('toast');
@@ -197,40 +190,60 @@
         const exportBtn = document.getElementById('exportBtn');
         const fileNameLabel = document.getElementById('fileNameLabel');
 
+        const editorModeContainer = document.getElementById('editorModeContainer');
+        const viewerModeContainer = document.getElementById('viewerModeContainer');
+
         let currentFileName = "index.html";
 
-        // Initialization routine wrapped with asynchronous decompression hooks
+        // Application State Management (Checks if viewing hosted link or workspace)
         async function init() {
             const hash = window.location.hash.substring(1);
+            
             if (hash) {
                 try {
-                    previewStatus.innerHTML = `⚙️ Decompressing...`;
-                    editor.value = await decompressCode(hash);
+                    // Hide workspace, trigger clean fullscreen layout mode
+                    editorModeContainer.classList.add('hidden');
+                    viewerModeContainer.classList.remove('hidden');
+                    
+                    const decompressedCode = await decompressCode(hash);
+                    renderTargetIframe(viewerPreview, decompressedCode);
                 } catch (e) {
-                    console.error("Link translation failure:", e);
-                    editor.value = DEFAULT_TEMPLATE;
-                    showToast("Error processing link data payload.");
+                    console.error("Link transformation failure:", e);
+                    fallbackToWorkspace("Error reading link data payload.");
                 }
             } else {
-                editor.value = DEFAULT_TEMPLATE;
+                // No link data? Load the local split editor interface view
+                viewerModeContainer.classList.add('hidden');
+                editorModeContainer.classList.remove('hidden');
+                if(!editor.value.trim()){
+                    editor.value = DEFAULT_TEMPLATE;
+                }
+                updatePreview(editor.value);
+                updateMetrics();
             }
-            updatePreview(editor.value);
-            updateMetrics();
+        }
+
+        function fallbackToWorkspace(msg) {
+            showToast(msg);
+            window.location.hash = '';
+            init();
+        }
+
+        function renderTargetIframe(targetFrame, code) {
+            const blob = new Blob([code], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const oldUrl = targetFrame.src;
+            targetFrame.src = url;
+            if (oldUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(oldUrl);
+            }
         }
 
         function updatePreview(code) {
             previewStatus.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Rendering`;
-            const blob = new Blob([code], {
-                type: 'text/html'
-            });
-            const url = URL.createObjectURL(blob);
-            const oldUrl = preview.src;
-            preview.src = url;
-            if (oldUrl.startsWith('blob:')) {
-                URL.revokeObjectURL(oldUrl);
-            }
+            renderTargetIframe(preview, code);
             setTimeout(() => {
-                previewStatus.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-cyan-500"></span> Synced`;
+                previewStatus.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Synced`;
             }, 200);
         }
 
@@ -248,20 +261,17 @@
             }, 2500);
         }
 
-        // File Import Operation
+        // Action Handlers
         importBtn.addEventListener('click', () => fileInput.click());
         fileInput.addEventListener('change', (event) => {
             const file = event.target.files[0];
             if (!file) return;
-
             currentFileName = file.name;
             fileNameLabel.textContent = currentFileName.toUpperCase();
-
             const reader = new FileReader();
             reader.onload = (e) => {
-                const fileContent = e.target.result;
-                editor.value = fileContent;
-                updatePreview(fileContent);
+                editor.value = e.target.result;
+                updatePreview(editor.value);
                 updateMetrics();
                 showToast(`Imported: ${file.name}`);
             };
@@ -269,12 +279,9 @@
             fileInput.value = "";
         });
 
-        // File Export Operation
         exportBtn.addEventListener('click', () => {
             const codeData = editor.value;
-            const blob = new Blob([codeData], {
-                type: 'text/html;charset=utf-8;'
-            });
+            const blob = new Blob([codeData], { type: 'text/html;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
             link.setAttribute("download", currentFileName);
@@ -285,30 +292,28 @@
             showToast("File downloaded successfully!");
         });
 
-        // Real-time synchronization
         editor.addEventListener('input', (e) => {
             updatePreview(e.target.value);
             updateMetrics();
         });
 
-        // Compression Share link generation handler
         shareBtn.addEventListener('click', async () => {
             if (!editor.value.trim()) return;
             try {
                 showToast("Compressing project files...");
                 const compressedCode = await compressCode(editor.value);
                 const shareUrl = `${window.location.origin}${window.location.pathname}#${compressedCode}`;
-
                 navigator.clipboard.writeText(shareUrl).then(() => {
-                    showToast("Compressed link copied to clipboard!");
-                }).catch(err => {
-                    console.error(err);
-                    showToast("Failed to copy link automatically.");
+                    showToast("Compressed hosting link copied!");
                 });
             } catch (err) {
-                console.error(err);
                 showToast("Error packing file constraints.");
             }
+        });
+
+        // Close full-screen site view and go right back to work on the editor
+        remixBtn.addEventListener('click', () => {
+            window.location.hash = '';
         });
 
         resetBtn.addEventListener('click', () => {
@@ -322,6 +327,8 @@
             }
         });
 
+        // Crucial: Watch hash alterations dynamically to switch application runtime states automatically
+        window.addEventListener('hashchange', init);
         window.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
