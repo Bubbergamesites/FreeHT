@@ -316,7 +316,7 @@
                 if (error) throw error;
 
                 // Build a short link under your own domain path
-                const shareUrl = `${window.location.origin}${window.location.pathname}/${shortId}`;
+                const shareUrl = `${window.location.origin}${window.location.pathname}#/${shortId}`;
                 
                 navigator.clipboard.writeText(shareUrl).then(() => {
                     showToast("Clean short link copied to clipboard!");
