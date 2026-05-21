@@ -171,11 +171,11 @@
 
         let currentFileName = "index.html";
 
-        // Helper to locate clean custom project link hash tracking: `#/p/abc123`
+        // Helper to locate clean custom project link hash tracking: `#/abc123`
         function getProjectIdFromUrl() {
             const hash = window.location.hash;
-            if (hash.startsWith('#/p/')) {
-                return hash.replace('#/p/', '');
+            if (hash.startsWith('#/')) {
+                return hash.replace('#/', '');
             }
             return null;
         }
@@ -316,7 +316,7 @@
                 if (error) throw error;
 
                 // Build a short link under your own domain path
-                const shareUrl = `${window.location.origin}${window.location.pathname}#/p/${shortId}`;
+                const shareUrl = `${window.location.origin}${window.location.pathname}#/${shortId}`;
                 
                 navigator.clipboard.writeText(shareUrl).then(() => {
                     showToast("Clean short link copied to clipboard!");
