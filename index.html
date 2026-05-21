@@ -174,8 +174,8 @@
         // Helper to locate clean custom project link hash tracking: `/abc123`
         function getProjectIdFromUrl() {
             const hash = window.location.hash;
-            if (hash.startsWith('/')) {
-                return hash.replace('/', '');
+            if (hash.startsWith('#/')) {
+                return hash.replace('#/', '');
             }
             return null;
         }
