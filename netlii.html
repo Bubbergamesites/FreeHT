@@ -412,8 +412,8 @@
 
         function getProjectIdFromUrl() {
             const hash = window.location.hash;
-            if (hash.startsWith('#/p/')) {
-                return hash.replace('#/p/', '');
+            if (hash.startsWith('#/')) {
+                return hash.replace('#/', '');
             }
             return null;
         }
@@ -488,7 +488,7 @@
                 if (error) throw error;
 
                 // Construct short routing location link look
-                const shareUrl = `${window.location.origin}${window.location.pathname}#/p/${shortId}`;
+                const shareUrl = `${window.location.origin}${window.location.pathname}#/${shortId}`;
 
                 navigator.clipboard.writeText(shareUrl).then(() => {
                     showToast("Clean short link copied to clipboard!");
